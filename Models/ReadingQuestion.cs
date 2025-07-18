@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Models
+namespace Models;
+
+public partial class ReadingQuestion
 {
-    internal class ReadingQuestion
-    {
-    }
+    public int QuestionId { get; set; }
+
+    public int SessionId { get; set; }
+
+    public string QuestionText { get; set; } = null!;
+
+    public string? Explanation { get; set; }
+
+    public virtual ICollection<ReadingOption> ReadingOptions { get; set; } = new List<ReadingOption>();
+
+    public virtual ReadingSession Session { get; set; } = null!;
 }

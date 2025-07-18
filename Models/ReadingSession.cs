@@ -1,12 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Models
+namespace Models;
+
+public partial class ReadingSession
 {
-    internal class ReadingSession
-    {
-    }
+    public int SessionId { get; set; }
+
+    public int UserId { get; set; }
+
+    public string SourceType { get; set; } = null!;
+
+    public int? PresetId { get; set; }
+
+    public string Passage { get; set; } = null!;
+
+    public string? Band { get; set; }
+
+    public double? Score { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+
+    public virtual PresetReading? Preset { get; set; }
+
+    public virtual ICollection<ReadingQuestion> ReadingQuestions { get; set; } = new List<ReadingQuestion>();
+
+    public virtual User User { get; set; } = null!;
 }
