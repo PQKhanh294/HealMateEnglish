@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Business.Services
+namespace Models
 {
-    internal class ReadingService
+    public class ReadingRequest
     {
+        public string Passage { get; set; } = string.Empty;
     }
 }

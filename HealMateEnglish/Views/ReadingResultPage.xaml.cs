@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using HealMateEnglish.ViewModels;
+using Models;
 
 namespace HealMateEnglish.Views
 {
@@ -20,9 +11,33 @@ namespace HealMateEnglish.Views
     /// </summary>
     public partial class ReadingResultPage : Page
     {
-        public ReadingResultPage()
+        public ReadingResultPage(ReadingViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
+        }
+
+        /// <summary>
+        /// Event handler for clicking on an option border
+        /// Makes the entire option row clickable
+        /// </summary>
+        private void Option_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Get the border that was clicked
+            if (sender is Border border &&
+                border.Tag is ReadingOption option &&
+                DataContext is ReadingViewModel viewModel)
+            {
+                // Only allow selection if answers aren't visible yet
+                if (!viewModel.IsAnswersVisible)
+                {
+                    // Execute the command to select the option
+                    if (viewModel.SelectOptionCommand.CanExecute(option))
+                    {
+                        viewModel.SelectOptionCommand.Execute(option);
+                    }
+                }
+            }
         }
     }
 }

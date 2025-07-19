@@ -2,13 +2,464 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:HealMateEnglish.Views"
+      xmlns:converters="clr-namespace:HealMateEnglish.Converters"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="ReadingResultPage">
-
-    <Grid>
+      d:DesignHeight="650" d:DesignWidth="1000"
+      Title="Reading Results">    <Page.Resources>
+        <!-- Converters -->        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter"/>
+        <converters:IndexConverter x:Key="IndexConverter"/>
+        <converters:PercentageToWidthConverter x:Key="PercentageToWidthConverter"/>
+        <converters:BooleanToVisibilityInverseConverter x:Key="BooleanToVisibilityInverseConverter"/>
+        <converters:BooleanToTooltipConverter x:Key="BooleanToTooltipConverter"/>
         
+        <!-- Style for option radio buttons -->
+        <Style x:Key="OptionRadioStyle" TargetType="RadioButton">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="5" />
+        </Style>
+    </Page.Resources>
+    
+    <Grid Margin="20">
+        <!-- Layout like computer-based test: two columns -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/> <!-- passage and questions share row 1 -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>        <!-- Passage on left with enhanced styling -->
+        <Border Grid.Row="0" Grid.Column="0" 
+                Background="#007BFF" CornerRadius="4,4,0,0" 
+                Padding="15,10" Margin="0,0,20,0">
+            <TextBlock Text="Reading Passage" 
+                     FontSize="18" FontWeight="SemiBold" 
+                     Foreground="White"/>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="0" 
+                BorderBrush="#CCCCCC" BorderThickness="1" 
+                Padding="15" Margin="0,0,20,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBlock Text="{Binding SelectedPresetReading.Passage}" 
+                         TextWrapping="Wrap" FontSize="14" LineHeight="22"/>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Questions panel on right with matching styling -->
+        <Border Grid.Row="0" Grid.Column="1" 
+                Background="#007BFF" CornerRadius="4,4,0,0" 
+                Padding="15,10">
+            <TextBlock Text="Questions" 
+                     FontSize="18" FontWeight="SemiBold" 
+                     Foreground="White"/>
+        </Border>
+        
+        <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>                <!-- No questions indicator with improved styling -->
+                <Border BorderThickness="1" BorderBrush="#FFD8D8" Background="#FFF5F5" 
+                        CornerRadius="4" Padding="10" Margin="0,0,0,15"
+                        Visibility="{Binding Questions.Count, Converter={StaticResource ZeroToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE783;" FontFamily="Segoe MDL2 Assets" 
+                                   FontSize="16" Foreground="#FF5252" Margin="0,0,8,0"/>
+                        <TextBlock Text="No questions available for this passage." 
+                                   Foreground="#FF5252" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border><!-- Enhanced instructions panel -->
+                <Border BorderThickness="1" BorderBrush="#007BFF" Background="#EFF8FF" 
+                        CornerRadius="4" Padding="15" Margin="0,0,0,20">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Info icon -->
+                        <TextBlock Grid.Column="0" Text="&#xE946;" FontFamily="Segoe MDL2 Assets" 
+                                   FontSize="22" Foreground="#007BFF" VerticalAlignment="Top" Margin="0,0,12,0"/>
+                        
+                        <StackPanel Grid.Column="1">
+                            <TextBlock TextWrapping="Wrap" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" Foreground="#007BFF">
+                                Instructions:
+                            </TextBlock>
+                            
+                            <!-- Single choice explanation -->
+                            <Border BorderThickness="0,0,0,1" BorderBrush="#D0E1F9" Padding="0,0,0,8" Margin="0,0,0,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <!-- Radio button visual -->
+                                    <Grid Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Ellipse Width="16" Height="16" Fill="Transparent" Stroke="#007BFF" StrokeThickness="1.5"/>
+                                        <Ellipse Width="8" Height="8" Fill="#007BFF"/>
+                                    </Grid>
+                                    
+                                    <!-- Explanation text -->
+                                    <TextBlock Grid.Column="1" TextWrapping="Wrap" FontSize="13" VerticalAlignment="Center">
+                                        <Run FontWeight="SemiBold">Standard Questions:</Run> Select only one answer.
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+                            
+                            <!-- Multiple choice explanation -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Checkbox visual -->
+                                <Grid Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                                    <Rectangle Width="16" Height="16" Fill="Transparent" Stroke="#007BFF" 
+                                              StrokeThickness="1.5" RadiusX="2" RadiusY="2"/>
+                                    <Path Data="M4,8 L6,10 L12,4" Stroke="#007BFF" StrokeThickness="2"
+                                         Stretch="Uniform" Width="10" Height="10"/>
+                                </Grid>
+                                
+                                <!-- Explanation text -->
+                                <TextBlock Grid.Column="1" TextWrapping="Wrap" FontSize="13" VerticalAlignment="Center">
+                                    <Run FontWeight="SemiBold">Multiple Choice Questions:</Run> Select all correct answers. 
+                                    Questions are marked as correct only when all correct answers are selected and no incorrect answers are selected.
+                                </TextBlock>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border><ItemsControl ItemsSource="{Binding Questions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,20" BorderThickness="0,0,0,1" BorderBrush="#DDDDDD" Padding="0,0,0,20">
+                                <StackPanel>                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <!-- Question number in circle -->
+                                        <Border Grid.Column="0" Background="#007BFF" Width="28" Height="28" 
+                                                CornerRadius="14" VerticalAlignment="Top" Margin="0,2,12,0">
+                                            <TextBlock Foreground="White" FontWeight="SemiBold" FontSize="14"
+                                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                       Text="{Binding Path=., RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContentPresenter}}, Converter={StaticResource IndexConverter}}"/>
+                                        </Border>
+                                        
+                                        <StackPanel Grid.Column="1">
+                                            <!-- Multiple choice indicator badge and question text in same row -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <!-- Question text -->
+                                                <TextBlock Grid.Column="0" FontWeight="SemiBold" FontSize="16" 
+                                                           Text="{Binding QuestionText}" TextWrapping="Wrap" />
+                                                
+                                                <!-- Multiple choice indicator badge positioned at right -->
+                                                <Border Grid.Column="1" BorderThickness="1" BorderBrush="#007BFF" Background="#E6F3FF" 
+                                                        CornerRadius="4" Padding="6,2" Margin="8,0,0,0"
+                                                        VerticalAlignment="Top"
+                                                        Visibility="{Binding IsMultipleChoice, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                    <TextBlock Text="Multiple Choice" FontSize="10" Foreground="#007BFF" VerticalAlignment="Center" />
+                                                </Border>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+                                      <ItemsControl ItemsSource="{Binding ReadingOptions}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border x:Name="OptionBorder" Padding="5" Margin="0,5" Background="Transparent" 
+                                                        CornerRadius="4" BorderThickness="1" BorderBrush="Transparent"
+                                                        Cursor="Hand"
+                                                        MouseDown="Option_MouseDown"
+                                                        Tag="{Binding}">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="BorderBrush" Value="Transparent"/>
+                                                        <Style.Triggers>
+                                                            <!-- When answer is visible and correct -->
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding DataContext.IsAnswersVisible, RelativeSource={RelativeSource AncestorType=Page}}" Value="True"/>
+                                                                    <Condition Binding="{Binding IsCorrect}" Value="True"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Background" Value="#E6F9E6"/> <!-- Light green -->
+                                                                <Setter Property="BorderBrush" Value="#4CAF50"/> <!-- Darker green -->
+                                                            </MultiDataTrigger>
+                                                            
+                                                            <!-- When answer is visible, user selected it, but it's incorrect -->
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding DataContext.IsAnswersVisible, RelativeSource={RelativeSource AncestorType=Page}}" Value="True"/>
+                                                                    <Condition Binding="{Binding UserSelected}" Value="True"/>
+                                                                    <Condition Binding="{Binding IsCorrect}" Value="False"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Background" Value="#FFEDED"/> <!-- Light red -->
+                                                                <Setter Property="BorderBrush" Value="#F44336"/> <!-- Darker red -->
+                                                            </MultiDataTrigger>
+                                                            
+                                                            <!-- When answer is not visible but is selected -->
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding DataContext.IsAnswersVisible, RelativeSource={RelativeSource AncestorType=Page}}" Value="False"/>
+                                                                    <Condition Binding="{Binding UserSelected}" Value="True"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Background" Value="#E3F2FD"/> <!-- Light blue -->
+                                                                <Setter Property="BorderBrush" Value="#90CAF9"/> <!-- Darker blue -->
+                                                            </MultiDataTrigger>
+                                                              <!-- Hover effect when answers aren't visible yet -->
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                                    <Condition Binding="{Binding DataContext.IsAnswersVisible, RelativeSource={RelativeSource AncestorType=Page}}" Value="False"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Background" Value="#F5F5F5"/>
+                                                                <Setter Property="BorderBrush" Value="#DDDDDD"/>
+                                                                <Setter Property="Effect">
+                                                                    <Setter.Value>
+                                                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.2" />
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>                                                    <!-- Radio button with visual hints for multiple-choice questions -->                                                    <Grid Grid.Column="0">
+                                                        <RadioButton IsChecked="{Binding UserSelected}"
+                                                                 Command="{Binding DataContext.SelectOptionCommand, 
+                                                                          RelativeSource={RelativeSource AncestorType=ItemsControl, 
+                                                                          AncestorLevel=2}}"
+                                                                 CommandParameter="{Binding}"
+                                                                 ToolTip="{Binding Question.IsMultipleChoice, 
+                                                                          Converter={StaticResource BooleanToTooltipConverter}}">
+                                                            <RadioButton.Style>
+                                                                <Style TargetType="RadioButton" BasedOn="{StaticResource OptionRadioStyle}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Question.IsMultipleChoice}" Value="False">
+                                                                            <Setter Property="GroupName" Value="{Binding QuestionId}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </RadioButton.Style>
+                                                            <RadioButton.Template>
+                                                                <ControlTemplate TargetType="RadioButton">
+                                                                    <Grid>
+                                                                        <!-- Different visual elements for single vs multiple choice -->
+                                                                        <Grid x:Name="RadioButtonVisual">
+                                                                            <Ellipse x:Name="OuterEllipse" 
+                                                                                Width="18" 
+                                                                                Height="18" 
+                                                                                StrokeThickness="1.5" 
+                                                                                Stroke="#007BFF" 
+                                                                                Fill="Transparent"/>
+                                                                            <Ellipse x:Name="InnerEllipse" 
+                                                                                Width="10" 
+                                                                                Height="10" 
+                                                                                Fill="#007BFF" 
+                                                                                Visibility="Hidden"/>
+                                                                        </Grid>
+                                                                        
+                                                                        <!-- Checkbox style for multiple choice -->
+                                                                        <Grid x:Name="CheckboxVisual" Visibility="Collapsed">
+                                                                            <Rectangle x:Name="OuterRect" 
+                                                                                    Width="16" 
+                                                                                    Height="16" 
+                                                                                    StrokeThickness="1.5" 
+                                                                                    Stroke="#007BFF" 
+                                                                                    RadiusX="2"
+                                                                                    RadiusY="2"
+                                                                                    Fill="Transparent"/>
+                                                                            <Path x:Name="CheckMark"
+                                                                                Data="M4,8 L6,10 L12,4"
+                                                                                Stroke="#007BFF"
+                                                                                StrokeThickness="2"
+                                                                                Visibility="Hidden" 
+                                                                                Stretch="Uniform"
+                                                                                Width="10"
+                                                                                Height="10"/>
+                                                                        </Grid>
+                                                                    </Grid>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <!-- Single choice trigger -->
+                                                                        <MultiDataTrigger>
+                                                                            <MultiDataTrigger.Conditions>
+                                                                                <Condition Binding="{Binding IsChecked, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                                                <Condition Binding="{Binding Question.IsMultipleChoice}" Value="False"/>
+                                                                            </MultiDataTrigger.Conditions>
+                                                                            <Setter TargetName="InnerEllipse" Property="Visibility" Value="Visible"/>
+                                                                        </MultiDataTrigger>
+                                                                        
+                                                                        <!-- Multiple choice trigger -->
+                                                                        <MultiDataTrigger>
+                                                                            <MultiDataTrigger.Conditions>
+                                                                                <Condition Binding="{Binding IsChecked, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                                                <Condition Binding="{Binding Question.IsMultipleChoice}" Value="True"/>
+                                                                            </MultiDataTrigger.Conditions>
+                                                                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                                                            <Setter TargetName="OuterRect" Property="Fill" Value="#E6F3FF"/>
+                                                                        </MultiDataTrigger>
+                                                                        
+                                                                        <!-- Show/hide appropriate visual based on question type -->
+                                                                        <DataTrigger Binding="{Binding Question.IsMultipleChoice}" Value="True">
+                                                                            <Setter TargetName="RadioButtonVisual" Property="Visibility" Value="Collapsed"/>
+                                                                            <Setter TargetName="CheckboxVisual" Property="Visibility" Value="Visible"/>
+                                                                        </DataTrigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </RadioButton.Template>
+                                                        </RadioButton>                                                        <!-- Removed redundant hint text as we have better visual indicators now -->
+                                                    </Grid>
+                                                      <StackPanel Grid.Column="1" Margin="10,0,0,0">                                                        <TextBlock TextWrapping="Wrap">
+                                                            <Run Text="{Binding OptionLabel}" FontWeight="Bold" FontFamily="Segoe UI"/>
+                                                            <Run Text=". "/>
+                                                            <Run Text="{Binding OptionText}"/>
+                                                        </TextBlock>
+                                                        
+                                                        <!-- Show "Correct Answer" or "Your Choice" indicators when answers are shown -->
+                                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0"
+                                                                    Visibility="{Binding DataContext.IsAnswersVisible, 
+                                                                                        RelativeSource={RelativeSource AncestorType=Page}, 
+                                                                                        Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                            <TextBlock Text="Correct Answer" FontSize="10" FontWeight="SemiBold" 
+                                                                       Foreground="#4CAF50" Margin="0,0,6,0"
+                                                                       Visibility="{Binding IsCorrect, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                                         <TextBlock Text="Your Choice" FontSize="10" FontWeight="SemiBold"
+                                                                       Foreground="#FF5252"
+                                                                       Visibility="{Binding UserSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                      <!-- Show explanation after submission with improved styling -->
+                                    <Border Margin="0,10,0,10" Padding="12,10" Background="#F9F9F9" BorderBrush="#E0E0E0" 
+                                            BorderThickness="1" CornerRadius="4"
+                                            Visibility="{Binding DataContext.IsAnswersVisible,
+                                                               RelativeSource={RelativeSource AncestorType=Page},
+                                                               Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <StackPanel>
+                                            <TextBlock Text="Explanation:" FontWeight="SemiBold" Margin="0,0,0,5" 
+                                                       Foreground="#007BFF"/>
+                                            <TextBlock Text="{Binding Explanation}" TextWrapping="Wrap" 
+                                                       FontStyle="Italic"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>        <!-- Controls: score and buttons at bottom -->
+        <Grid Grid.Row="2" Grid.Column="1" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Score display on left with better visualization -->
+            <Border Grid.Column="0" 
+                    BorderThickness="1" BorderBrush="#E0E0E0"
+                    Background="#F5F9FF" CornerRadius="4" Padding="15,10"
+                    Visibility="{Binding IsAnswersVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    HorizontalAlignment="Left" Width="250">
+                <StackPanel>
+                    <TextBlock Text="Your Results" FontSize="16" FontWeight="Bold" Foreground="#333333" Margin="0,0,0,8"/>
+                    
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Score:" FontSize="14" FontWeight="SemiBold" Foreground="#555555"/>
+                        <TextBlock Grid.Column="1" HorizontalAlignment="Right" FontSize="14" FontWeight="Bold" Foreground="#007BFF">
+                            <Run Text="{Binding Score, Mode=OneWay}"/>
+                            <Run Text="/"/>
+                            <Run Text="{Binding Questions.Count, Mode=OneWay}"/>
+                        </TextBlock>
+                    </Grid>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="IELTS Band:" FontSize="14" FontWeight="SemiBold" Foreground="#555555"/>
+                        <TextBlock Grid.Column="1" HorizontalAlignment="Right" FontSize="14" FontWeight="Bold" Foreground="#007BFF">
+                            <Run Text="{Binding Band, Mode=OneWay}"/>
+                        </TextBlock>
+                    </Grid>
+                </StackPanel>
+            </Border>
+              <!-- Progress indicator for questions attempted -->
+            <Border Grid.Column="0" BorderThickness="1" BorderBrush="#E0E0E0" 
+                    Background="#FFFFFF" CornerRadius="4" Padding="15,10" 
+                    HorizontalAlignment="Left" Width="250"
+                    Margin="0,0,0,0" 
+                    Visibility="{Binding IsAnswersVisible, Converter={StaticResource BooleanToVisibilityInverseConverter}}">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Progress" FontSize="14" FontWeight="SemiBold" Foreground="#555555"/>
+                        <TextBlock Grid.Column="1" HorizontalAlignment="Right" FontWeight="SemiBold">
+                            <Run Text="{Binding AttemptedQuestionsCount, Mode=OneWay}"/>
+                            <Run Text="/"/>
+                            <Run Text="{Binding Questions.Count, Mode=OneWay}"/>
+                        </TextBlock>
+                    </Grid>
+                    
+                    <Grid Margin="0,5,0,0" Height="6">
+                        <!-- Background bar -->
+                        <Border Background="#EEEEEE" CornerRadius="3"/>
+                        
+                        <!-- Progress bar -->
+                        <Border Background="#4CAF50" CornerRadius="3" HorizontalAlignment="Left"
+                                Width="{Binding AttemptedPercentage, Converter={StaticResource PercentageToWidthConverter}, RelativeSource={RelativeSource AncestorType=Grid}}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- Buttons on right -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <!-- Submit button -->
+                <Button Content="Submit Answers" Width="140" Height="40" Margin="0,0,15,0" 
+                        Background="#4CAF50" Foreground="White" FontWeight="SemiBold"
+                        Command="{Binding ShowAnswersCommand}"
+                        IsEnabled="{Binding IsSubmitEnabled}"
+                        Visibility="{Binding IsAnswersVisible, Converter={StaticResource BooleanToVisibilityInverseConverter}}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Opacity" Value="1"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.5"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button Content="Try Another Passage" Width="160" Height="40" 
+                        Background="#007BFF" Foreground="White" FontWeight="SemiBold"
+                        Command="{Binding NewPassageCommand}"
+                        Visibility="{Binding IsAnswersVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>

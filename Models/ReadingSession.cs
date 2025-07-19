@@ -20,10 +20,7 @@ public partial class ReadingSession
     public double? Score { get; set; }
 
     public DateTime? CreatedAt { get; set; }
-
     public virtual PresetReading? Preset { get; set; }
-
-    public virtual ICollection<ReadingQuestion> ReadingQuestions { get; set; } = new List<ReadingQuestion>();
 
     public virtual User User { get; set; } = null!;
 }

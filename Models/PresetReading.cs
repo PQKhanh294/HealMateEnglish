@@ -17,7 +17,12 @@ public partial class PresetReading
 
     public DateTime? CreatedAt { get; set; }
 
+    public bool IsAiCreated { get; set; } // New: mark AI-generated presets
+
     public virtual User CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<ReadingSession> ReadingSessions { get; set; } = new List<ReadingSession>();
+
+    // Navigation for reading questions under this preset
+    public virtual ICollection<ReadingQuestion> ReadingQuestions { get; set; } = new List<ReadingQuestion>();
 }
