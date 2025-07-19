@@ -34,7 +34,7 @@ public partial class HealmateEnglishContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlServer(
-                  "Server= LAPTOP-1MCPK8AU\\SQLEXPRESS; Database=HealmateEnglish; Uid=sa; Pwd=123; TrustServerCertificate=True"
+                  "Server= HAI\\SQLEXPRESS; Database=HealmateEnglish; Uid=sa; Pwd=123; TrustServerCertificate=True"
                );
     }
 
@@ -84,6 +84,9 @@ public partial class HealmateEnglishContext : DbContext
             entity.Property(e => e.Title)
                 .HasMaxLength(100)
                 .HasColumnName("title");
+            entity.Property(e => e.IsAiCreated)
+                .HasColumnName("IsAiCreated")
+                .HasDefaultValue(false);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PresetReadings)
                 .HasForeignKey(d => d.CreatedBy)
@@ -139,20 +142,21 @@ public partial class HealmateEnglishContext : DbContext
             entity.HasOne(d => d.Question).WithMany(p => p.ReadingOptions)
                 .HasForeignKey(d => d.QuestionId)
                 .HasConstraintName("FK__ReadingOp__quest__55F4C372");
-        });
-
-        modelBuilder.Entity<ReadingQuestion>(entity =>
+        }); modelBuilder.Entity<ReadingQuestion>(entity =>
         {
             entity.HasKey(e => e.QuestionId).HasName("PK__ReadingQ__2EC2154968AEC159");
 
             entity.Property(e => e.QuestionId).HasColumnName("question_id");
             entity.Property(e => e.Explanation).HasColumnName("explanation");
             entity.Property(e => e.QuestionText).HasColumnName("question_text");
-            entity.Property(e => e.SessionId).HasColumnName("session_id");
+            entity.Property(e => e.PresetId).HasColumnName("preset_id");
+            entity.Property(e => e.IsMultipleChoice)
+                .HasColumnName("is_multiple_choice")
+                .HasDefaultValue(false);
 
-            entity.HasOne(d => d.Session).WithMany(p => p.ReadingQuestions)
-                .HasForeignKey(d => d.SessionId)
-                .HasConstraintName("FK__ReadingQu__sessi__503BEA1C");
+            entity.HasOne(d => d.Preset).WithMany(p => p.ReadingQuestions)
+                .HasForeignKey(d => d.PresetId)
+                .HasConstraintName("FK__ReadingQu__prese__503BEA1C");
         });
 
         modelBuilder.Entity<ReadingSession>(entity =>
