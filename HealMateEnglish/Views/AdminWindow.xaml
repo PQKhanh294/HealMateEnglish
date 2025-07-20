@@ -5,8 +5,60 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HealMateEnglish.Views"
         mc:Ignorable="d"
-        Title="AdminWindow" Height="450" Width="800">
+        Title="Admin Panel" Height="600" Width="900" MinWidth="800" MinHeight="500"
+        Background="#F4F8FB">
+    <Window.Resources>
+        <Style x:Key="MenuButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="10,5"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Background" Value="#2D89EF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#2D89EF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1761A0"/>
+                    <Setter Property="BorderBrush" Value="#1761A0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="SidebarTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="10,20,10,20"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="180"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <!-- Sidebar Menu -->
+        <StackPanel Grid.Column="0" Background="#1B263B" VerticalAlignment="Stretch">
+            <TextBlock Text="Admin Menu" Style="{StaticResource SidebarTextStyle}"/>
+            <Button Content="Add Reading" Style="{StaticResource MenuButtonStyle}" Command="{Binding ShowAddReadingCommand}"/>
+            <Button Content="Add Writing" Style="{StaticResource MenuButtonStyle}" Command="{Binding ShowAddTopicCommand}"/>
+            <Button Content="View Logs" Style="{StaticResource MenuButtonStyle}" Command="{Binding ShowLogsCommand}"/>
+            <Button Content="Change Password" Style="{StaticResource MenuButtonStyle}" Command="{Binding ShowChangePasswordCommand}"/>
+        </StackPanel>
+        <!-- Main Content Area -->
+        <Border Grid.Column="1" Margin="20" Background="White" CornerRadius="12" Padding="24">
+            <ContentControl Content="{Binding CurrentView}"/>
+        </Border>
     </Grid>
 </Window>

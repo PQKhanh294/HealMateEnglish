@@ -1,0 +1,31 @@
+<UserControl x:Class="HealMateEnglish.Views.UserControls.ViewLogsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="400" d:DesignWidth="700">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Lịch sử API Log" FontSize="22" FontWeight="Bold" Margin="0,0,0,20"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Tìm kiếm:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <TextBox x:Name="SearchTextBox" Width="200" Height="26"/>
+        </StackPanel>
+        <ListView Grid.Row="2" x:Name="LogListView" Margin="0,0,0,0">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Thời gian" Width="140" DisplayMemberBinding="{Binding Time}"/>
+                    <GridViewColumn Header="User" Width="100" DisplayMemberBinding="{Binding User}"/>
+                    <GridViewColumn Header="API" Width="180" DisplayMemberBinding="{Binding Api}"/>
+                    <GridViewColumn Header="Trạng thái" Width="80" DisplayMemberBinding="{Binding Status}"/>
+                    <GridViewColumn Header="Nội dung" Width="200" DisplayMemberBinding="{Binding Content}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</UserControl> 

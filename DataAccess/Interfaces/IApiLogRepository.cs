@@ -1,12 +1,14 @@
-﻿using System;
+﻿using Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DataAccess.Interfaces
 {
-    internal interface IApiLogRepository
+    public interface IApiLogRepository
     {
+        Task AddLogAsync(Apilog log);
+        Task<List<Apilog>> GetAllLogsAsync();
+        Task<List<Apilog>> GetLogsByUserAsync(string username);
+        Task<Apilog> GetLogByIdAsync(int id);
     }
 }
