@@ -106,10 +106,10 @@ public partial class HealmateEnglishContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
-                .HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+                .HasColumnName("created_at"); entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.Title)
-                .HasMaxLength(100)
+                .HasMaxLength(250)
+                .IsRequired(false)  // Allow null to match database schema
                 .HasColumnName("title");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PresetWritingTopics)

@@ -8,84 +8,191 @@
       mc:Ignorable="d" 
       d:DesignHeight="650" d:DesignWidth="1000"
       Title="Reading Practice">
-
+    
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <converters:BooleanToVisibilityInverseConverter x:Key="InvBoolToVis"/>
+        
+        <!-- Modern Card Style -->
+        <Style x:Key="ModernCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="Margin" Value="16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#E0E0E0" Direction="270" ShadowDepth="4" BlurRadius="12" Opacity="0.3"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Button Style -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007BFF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="8" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#20000000" Direction="270" ShadowDepth="2" BlurRadius="8"/>
+                            </Border.Effect>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#0056B3"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#004085"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Secondary Button Style -->
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#6C757D"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#5A6268"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#545B62"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
 
-    <Grid Margin="20">
+    <Grid Background="#F8F9FA">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Reading Practice" 
-                   FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+        <!-- Header -->
+        <Border Grid.Row="0" Background="White" Padding="24,20" Margin="0,0,0,16">
+            <Border.Effect>
+                <DropShadowEffect Color="#E0E0E0" Direction="270" ShadowDepth="2" BlurRadius="8" Opacity="0.2"/>
+            </Border.Effect>
+            <StackPanel>
+                <TextBlock Text="📚 Reading Practice" FontSize="28" FontWeight="Bold" 
+                           Foreground="#2C3E50" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                <TextBlock Text="Choose your preferred reading method below" FontSize="16" 
+                           Foreground="#6C757D" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
-            <RadioButton x:Name="rbPreset" Content="Choose from presets" 
-                         Margin="0,0,20,0" IsChecked="True" Checked="RadioButton_Checked"/>
-            <RadioButton x:Name="rbCustom" Content="Enter your own text" 
-                         Checked="RadioButton_Checked"/>
-        </StackPanel>
-
-        <Grid Grid.Row="2">
-            <Grid x:Name="PresetGrid" Visibility="{Binding IsPresetMode, Converter={StaticResource BoolToVis}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <CheckBox Grid.Row="0" Content="Show only AI-created presets" 
-                          IsChecked="{Binding ShowAiCreatedOnly}" Margin="0,0,0,10"/>
-                <TextBlock Grid.Row="1" Text="Select a reading passage:" Margin="0,0,0,10"/>
-                <ListView Grid.Row="2" x:Name="PresetListView" 
-                          ItemsSource="{Binding FilteredPresetReadings}" 
-                          SelectedItem="{Binding SelectedPresetReading}"
-                          BorderThickness="1" BorderBrush="#DDDDDD">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="5">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="{Binding Title}" 
-                                           FontWeight="Bold" FontSize="16"/>
-                                <TextBlock Grid.Row="1" Text="{Binding Part}" 
-                                           Foreground="Gray" FontStyle="Italic"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
-
-            <Grid x:Name="CustomGrid" Visibility="{Binding IsPresetMode, Converter={StaticResource InvBoolToVis}}">
+        <!-- Main Content -->
+        <Border Grid.Row="1" Style="{StaticResource ModernCardStyle}" Margin="16,0,16,16">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                
-                <TextBlock Grid.Row="0" Text="Enter your text:" Margin="0,0,0,10"/>
-                <TextBox Grid.Row="1" x:Name="CustomTextBox" 
-                         AcceptsReturn="True" TextWrapping="Wrap"
-                         Text="{Binding CustomPassage, UpdateSourceTrigger=PropertyChanged}"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                         BorderThickness="1" BorderBrush="#DDDDDD"/>
-            </Grid>
-        </Grid>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" 
-                    HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Cancel" Width="100" Height="35" Margin="0,0,15,0"
-                    Click="CancelButton_Click"/>
-            <Button Content="Begin" Width="150" Height="35" 
-                    Background="#007BFF" Foreground="White"
-                    Command="{Binding GenerateQuestionsCommand}"/>
-        </StackPanel>
+                <!-- Mode Selection -->
+                <Border Grid.Row="0" Background="#F8F9FA" CornerRadius="8" Padding="16" Margin="0,0,0,20">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <RadioButton x:Name="rbPreset" Content="📖 Choose from presets" 
+                                     Margin="0,0,32,0" IsChecked="True" Checked="RadioButton_Checked"
+                                     FontSize="16" FontWeight="Medium"/>
+                        <RadioButton x:Name="rbCustom" Content="✍️ Enter your own text" 
+                                     Checked="RadioButton_Checked"
+                                     FontSize="16" FontWeight="Medium"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Content based on mode -->
+                <Grid Grid.Row="1">
+                    <!-- Preset Mode -->
+                    <Grid x:Name="PresetGrid" Visibility="{Binding IsPresetMode, Converter={StaticResource BoolToVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <CheckBox Grid.Row="0" Content="🤖 Show only AI-created presets" 
+                                  IsChecked="{Binding ShowAiCreatedOnly}" Margin="0,0,0,16"
+                                  FontSize="14"/>
+
+                        <TextBlock Grid.Row="1" Text="📚 Available Reading Materials:" 
+                                   FontWeight="SemiBold" FontSize="16" Margin="0,0,0,12"/>
+
+                        <ListView Grid.Row="2" x:Name="PresetListView" 
+                                  ItemsSource="{Binding FilteredPresetReadings}" 
+                                  SelectedItem="{Binding SelectedPresetReading}"
+                                  Background="Transparent" BorderThickness="1" BorderBrush="#E0E0E0">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" CornerRadius="8" Padding="16" Margin="4"
+                                            BorderThickness="1" BorderBrush="#E9ECEF">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#E0E0E0" Direction="270" ShadowDepth="1" BlurRadius="4" Opacity="0.2"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" 
+                                                       Foreground="#2C3E50" Margin="0,0,0,8"/>
+                                            <TextBlock Text="{Binding Part}" TextWrapping="Wrap" FontSize="14" 
+                                                       Foreground="#6C757D" Margin="0,0,0,8"/>
+                                            <Border Background="#E3F2FD" CornerRadius="12" Padding="8,4" HorizontalAlignment="Left">
+                                                <TextBlock Text="📊 Reading Passage" FontSize="12" 
+                                                           FontWeight="Medium" Foreground="#1976D2"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+
+                    <!-- Custom Mode -->
+                    <Grid x:Name="CustomGrid" Visibility="{Binding IsPresetMode, Converter={StaticResource InvBoolToVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Grid.Row="0" Text="✍️ Enter your reading text:" 
+                                   FontWeight="SemiBold" FontSize="16" Margin="0,0,0,12"/>
+                        
+                        <Border Grid.Row="1" Background="White" CornerRadius="8" BorderThickness="1" BorderBrush="#E0E0E0">
+                            <TextBox x:Name="CustomTextBox" 
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     Text="{Binding CustomPassage, UpdateSourceTrigger=PropertyChanged}"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     BorderThickness="0" Padding="16" FontSize="14"
+                                     Background="Transparent"/>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Action Buttons -->
+        <Border Grid.Row="2" Background="White" Padding="24,16" Margin="0">
+            <Border.Effect>
+                <DropShadowEffect Color="#E0E0E0" Direction="90" ShadowDepth="2" BlurRadius="8" Opacity="0.2"/>
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="← Back to Dashboard" Style="{StaticResource SecondaryButtonStyle}"
+                        Width="180" Margin="0,0,16,0" Click="CancelButton_Click"/>
+                <Button Content="🚀 Begin Reading" Style="{StaticResource ModernButtonStyle}"
+                        Width="160" Command="{Binding GenerateQuestionsCommand}"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>

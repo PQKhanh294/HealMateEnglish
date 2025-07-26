@@ -15,7 +15,7 @@ public partial class ReadingOption
 
     public bool? IsCorrect { get; set; }
 
-    public bool? UserSelected { get; set; }
+    // UserSelected property moved to ReadingOption.Partial.cs for PropertyChanged support
 
     public virtual ReadingQuestion Question { get; set; } = null!;
 }

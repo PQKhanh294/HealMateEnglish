@@ -15,10 +15,10 @@ using Models;
 namespace HealMateEnglish.ViewModels
 {
     public class ReadingViewModel : INotifyPropertyChanged
-    {
-        // Events to signal navigation and question load
+    {        // Events to signal navigation and question load
         public event Action? QuestionsLoaded;
         public event Action? NavigateToReadingPageRequested;
+        public event Action? NavigateToDashboardRequested;
 
         // Score after answering
         private int _score;
@@ -47,11 +47,13 @@ namespace HealMateEnglish.ViewModels
         private bool _isAnswersVisible;
         private bool _showExplanations;
         private bool _showAiCreatedOnly;
+        private readonly int _userId;
 
-        public ReadingViewModel(IReadingAIService aiService, ReadingRepository repo)
+        public ReadingViewModel(IReadingAIService aiService, ReadingRepository repo, int userId = 1)
         {
             _aiService = aiService;
             _repo = repo;
+            _userId = userId;
 
             // Initialize filtered view for presets with AI-created filter
             FilteredPresetReadings = CollectionViewSource.GetDefaultView(PresetReadings);
@@ -68,11 +70,13 @@ namespace HealMateEnglish.ViewModels
             // Load presets
             _ = LoadPresetsAsync();
         }
-
         public ICommand GenerateQuestionsCommand { get; }
         public ICommand ShowAnswersCommand { get; }
         public ICommand NewPassageCommand { get; }
         public ICommand SelectOptionCommand { get; }
+
+        // Public property to access userId from UI code
+        public int UserId => _userId;
 
         public ObservableCollection<PresetReading> PresetReadings
         {
@@ -168,12 +172,20 @@ namespace HealMateEnglish.ViewModels
             }
         }
 
-        public ICollectionView FilteredPresetReadings { get; }
-
-        private bool FilterPreset(PresetReading? preset)
+        public ICollectionView FilteredPresetReadings { get; }        private bool FilterPreset(PresetReading? preset)
         {
             if (preset == null) return false;
-            return !ShowAiCreatedOnly || preset.IsAiCreated;
+            
+            if (ShowAiCreatedOnly)
+            {
+                // Hiển thị preset AI-created của user hiện tại
+                return preset.IsAiCreated && preset.CreatedBy == _userId;
+            }
+            else
+            {
+                // Hiển thị preset không phải AI (preset gốc của hệ thống)
+                return !preset.IsAiCreated;
+            }
         }
 
         private async Task LoadPresetsAsync()
@@ -203,6 +215,7 @@ namespace HealMateEnglish.ViewModels
                 }
                 // No existing questions: generate via AI, save under preset, then reload
                 string aiResponse = await _aiService.GenerateReadingQuestionsAsync(SelectedPresetReading.Passage);
+                Debug.WriteLine("AI Response: " + aiResponse); // Debug AI response
                 await _aiService.SaveAiQuestionsAsync(SelectedPresetReading.Passage, aiResponse, SelectedPresetReading.PresetId);
                 await LoadQuestionsByPresetAsync(SelectedPresetReading.PresetId);
                 QuestionsLoaded?.Invoke();
@@ -211,14 +224,13 @@ namespace HealMateEnglish.ViewModels
 
             // Custom AI-generated passage
             if (!IsPresetMode)
-            {
-                var preset = new PresetReading
+            {                var preset = new PresetReading
                 {
                     Title = passage.Length > 30 ? passage[..30] + "..." : passage,
                     Part = "Custom",
                     Passage = passage,
                     CreatedAt = DateTime.Now,
-                    CreatedBy = 1,
+                    CreatedBy = _userId,
                     IsAiCreated = true
                 };
                 var newPresetId = await _repo.AddPresetReadingAsync(preset);
@@ -226,14 +238,26 @@ namespace HealMateEnglish.ViewModels
                 SelectedPresetReading = PresetReadings.FirstOrDefault(p => p.PresetId == newPresetId);
 
                 // Generate AI questions and display
+                Debug.WriteLine($"[DEBUG] Passage gửi cho AI: {passage}");
                 string aiResponse = await _aiService.GenerateReadingQuestionsAsync(passage);
+                Debug.WriteLine($"[DEBUG] AI Response: {aiResponse}");
                 var aiQuestions = ParseAiResponse(aiResponse, newPresetId);
+                Debug.WriteLine($"[DEBUG] Số lượng câu hỏi parse được: {aiQuestions.Count}");
                 if (!aiQuestions.Any()) aiQuestions = GetSampleQuestions(newPresetId);
                 Questions.Clear();
-                foreach (var q in aiQuestions) Questions.Add(q);
-
+                foreach (var q in aiQuestions)
+                {
+                    Debug.WriteLine($"[DEBUG] Question: {q.QuestionText}");
+                    foreach (var opt in q.ReadingOptions)
+                    {
+                        Debug.WriteLine($"    Option {opt.OptionLabel}: {opt.OptionText} (IsCorrect: {opt.IsCorrect})");
+                    }
+                    Debug.WriteLine($"    Explanation: {q.Explanation}");
+                }
                 // Persist questions under new preset
                 await _aiService.SaveAiQuestionsAsync(passage, aiResponse, newPresetId);
+                Debug.WriteLine($"[DEBUG] Đã lưu câu hỏi xuống DB cho presetId: {newPresetId}");
+                await LoadQuestionsByPresetAsync(newPresetId); // <-- FIX: Reload questions after saving
                 QuestionsLoaded?.Invoke();
                 return;
             }
@@ -363,72 +387,55 @@ namespace HealMateEnglish.ViewModels
             foreach (var q in questions)
                 Questions.Add(q);
         }
-
         private void NavigateToReadingPage()
         {
-            NavigateToReadingPageRequested?.Invoke();
+            // Quay về Dashboard thay vì tạo ReadingPage mới
+            NavigateToDashboardRequested?.Invoke();
         }
-        private void ShowAnswers()
+        private async void ShowAnswers()
         {
             IsAnswersVisible = true;
             ShowExplanations = true;
-
             int correctAnswers = 0;
             int totalQuestions = Questions.Count;
-
             foreach (var question in Questions)
             {
                 bool isCorrect = false;
-
                 if (question.IsMultipleChoice)
                 {
-                    // For multiple-choice questions: 
-                    // 1. All correct options must be selected
-                    // 2. No incorrect options can be selected
-                    bool allCorrectSelected = question.ReadingOptions
-                        .Where(o => o.IsCorrect == true)
-                        .All(o => o.UserSelected == true);
-
-                    bool noIncorrectSelected = question.ReadingOptions
-                        .Where(o => o.IsCorrect == false)
-                        .All(o => o.UserSelected != true);
-
+                    bool allCorrectSelected = question.ReadingOptions.Where(o => o.IsCorrect == true).All(o => o.UserSelected == true);
+                    bool noIncorrectSelected = question.ReadingOptions.Where(o => o.IsCorrect == false).All(o => o.UserSelected != true);
                     isCorrect = allCorrectSelected && noIncorrectSelected;
-
-                    // Debug information
-                    Debug.WriteLine($"Question {question.QuestionId} (Multiple Choice): {(isCorrect ? "Correct" : "Incorrect")}");
-                    Debug.WriteLine($"  - All correct selected: {allCorrectSelected}");
-                    Debug.WriteLine($"  - No incorrect selected: {noIncorrectSelected}");
                 }
                 else
                 {
-                    // For single-choice questions, check if exactly one option is selected and it's correct
                     var selectedOption = question.ReadingOptions.FirstOrDefault(o => o.UserSelected == true);
                     isCorrect = selectedOption != null && selectedOption.IsCorrect == true;
-
-                    // Debug information
-                    Debug.WriteLine($"Question {question.QuestionId} (Single Choice): {(isCorrect ? "Correct" : "Incorrect")}");
-                    if (selectedOption != null)
-                    {
-                        Debug.WriteLine($"  - Selected option: {selectedOption.OptionLabel} (IsCorrect: {selectedOption.IsCorrect})");
-                    }
-                    else
-                    {
-                        Debug.WriteLine("  - No option selected");
-                    }
                 }
-
-                if (isCorrect)
-                {
-                    correctAnswers++;
-                }
+                if (isCorrect) correctAnswers++;
             }
-
             Score = correctAnswers;
-            Debug.WriteLine($"Final Score: {Score}/{totalQuestions}");
-
-            // Update all UI-related properties in one go
             UpdateUIProperties();
+            // Save session to DB
+            try
+            {
+                var session = new ReadingSession
+                {
+                    UserId = _userId,
+                    SourceType = IsPresetMode ? "preset" : "custom",
+                    PresetId = SelectedPresetReading?.PresetId,
+                    Passage = IsPresetMode ? SelectedPresetReading?.Passage ?? string.Empty : CustomPassage,
+                    Band = Band,
+                    Score = Score,
+                    CreatedAt = DateTime.Now
+                };
+                await _repo.AddReadingSessionAsync(session);
+                Debug.WriteLine($"[DEBUG] ReadingSession saved for user {_userId}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ERROR] Failed to save ReadingSession: {ex.Message}");
+            }
         }
         private void SelectOption(ReadingOption? option)
         {
@@ -438,10 +445,9 @@ namespace HealMateEnglish.ViewModels
             var question = Questions.FirstOrDefault(q => q.QuestionId == option.QuestionId);
             if (question != null)
             {
-                // For single-choice questions, the standard RadioButton behavior will handle the selection
                 if (!question.IsMultipleChoice)
                 {
-                    // Deselect all other options in this question
+                    // For single-choice questions: deselect all other options
                     foreach (var otherOption in question.ReadingOptions)
                     {
                         if (otherOption != option && otherOption.UserSelected == true)
@@ -449,22 +455,30 @@ namespace HealMateEnglish.ViewModels
                             otherOption.UserSelected = false;
                         }
                     }
-
                     // Select the clicked option
                     option.UserSelected = true;
                 }
-                // For multiple-choice questions, the TwoWay binding on the IsChecked property
-                // now handles the toggling. The logic was removed from here to prevent a
-                // "double-toggle" conflict where the binding and the command would both
-                // change the value, leading to incorrect state.
+                else
+                {
+                    // For multiple-choice questions: toggle the clicked option
+                    bool currentState = option.UserSelected ?? false;
+                    option.UserSelected = !currentState;
 
-                // Always notify to update UI
-                OnPropertyChanged(nameof(Questions));
+                    // Debug output to help track selection changes
+                    System.Diagnostics.Debug.WriteLine($"[Multiple Choice] Option {option.OptionLabel}: {(option.UserSelected == true ? "Selected" : "Deselected")}");
+                }
+
+                // Force notification for the entire Questions collection to update UI
+                var currentQuestions = Questions.ToList();
+                Questions.Clear();
+                foreach (var q in currentQuestions)
+                {
+                    Questions.Add(q);
+                }
+
                 UpdateProgress();
             }
-        }
-
-        // Track how many questions have been attempted
+        }        // Track how many questions have been attempted
         public int AttemptsCount
         {
             get => Questions.Count(q => q.ReadingOptions.Any(o => o.UserSelected == true));
@@ -476,11 +490,16 @@ namespace HealMateEnglish.ViewModels
             get => Questions.Count > 0 ? (AttemptsCount / (double)Questions.Count) * 100 : 0;
         }
 
-        // Update the progress when an option is selected
+        // Check if submit button should be enabled
+        public bool IsSubmitEnabled
+        {
+            get => AttemptsCount > 0 && !IsAnswersVisible;
+        }        // Update the progress when an option is selected
         private void UpdateProgress()
         {
             OnPropertyChanged(nameof(AttemptsCount));
             OnPropertyChanged(nameof(ProgressPercentage));
+            OnPropertyChanged(nameof(IsSubmitEnabled));
         }
 
         #region INotifyPropertyChanged
@@ -519,6 +538,11 @@ namespace HealMateEnglish.ViewModels
         {
             Questions.Clear();
 
+            // Reset UI state to ensure fresh start for every question load
+            IsAnswersVisible = false;
+            ShowExplanations = false;
+            Score = 0; // Reset score to 0
+
             // Make sure questions with multiple correct options are marked as multiple-choice
             await _repo.MarkQuestionsWithMultipleCorrectOptionsAsync();
 
@@ -554,6 +578,7 @@ namespace HealMateEnglish.ViewModels
             OnPropertyChanged(nameof(ShowExplanations));
             OnPropertyChanged(nameof(AttemptsCount));
             OnPropertyChanged(nameof(ProgressPercentage));
+            OnPropertyChanged(nameof(IsSubmitEnabled));
         }
     }
 

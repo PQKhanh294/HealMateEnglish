@@ -3,12 +3,14 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:local="clr-namespace:HealMateEnglish.Views"
-      xmlns:converters="clr-namespace:HealMateEnglish.Converters"
+      xmlns:local="clr-namespace:HealMateEnglish.Views"      xmlns:converters="clr-namespace:HealMateEnglish.Converters"
       mc:Ignorable="d" 
       d:DesignHeight="650" d:DesignWidth="1000"
-      Title="Reading Results">    <Page.Resources>
-        <!-- Converters -->        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+      Title="Reading Results">
+    
+    <Page.Resources>
+        <!-- Converters -->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter"/>
         <converters:IndexConverter x:Key="IndexConverter"/>
         <converters:PercentageToWidthConverter x:Key="PercentageToWidthConverter"/>

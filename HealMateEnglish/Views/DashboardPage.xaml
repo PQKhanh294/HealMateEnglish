@@ -4,11 +4,512 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:HealMateEnglish.Views"
+      xmlns:converters="clr-namespace:HealMateEnglish.Converters"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="DashboardPage">
-
-    <Grid>
+      Title="DashboardPage">    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:BooleanToVisibilityInverseConverter x:Key="BooleanToVisibilityInverseConverter"/>
+        <converters:BooleanToTooltipConverter x:Key="BooleanToTooltipConverter"/>
         
+        <!-- Modern Card Style -->
+        <Style x:Key="ModernCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="Margin" Value="16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#E0E0E0" Direction="270" ShadowDepth="4" BlurRadius="12" Opacity="0.3"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Button Style -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007BFF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="8" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#20000000" Direction="270" ShadowDepth="2" BlurRadius="8"/>
+                            </Border.Effect>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#0056B3"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#004085"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Success Button Style -->
+        <Style x:Key="SuccessButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#28A745"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#218838"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#1E7E34"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Danger Button Style -->
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#DC3545"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#C82333"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#BD2130"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Modern TabItem Style -->
+        <Style x:Key="ModernTabStyle" TargetType="TabItem">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Name="Border" BorderThickness="0" CornerRadius="8,8,0,0" Margin="2,0">
+                            <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                                              ContentSource="Header" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#007BFF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter TargetName="Border" Property="Background" Value="#F8F9FA"/>
+                                <Setter Property="Foreground" Value="#6C757D"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Border" Property="Background" Value="#E9ECEF"/>
+                                <Setter Property="Foreground" Value="#495057"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="#F8F9FA">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header Section -->
+        <Border Grid.Row="0" Background="White" Padding="24,20" Margin="0,0,0,16">
+            <Border.Effect>
+                <DropShadowEffect Color="#E0E0E0" Direction="270" ShadowDepth="2" BlurRadius="8" Opacity="0.2"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🎓" FontSize="32" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                    <StackPanel>
+                        <TextBlock Text="HealMate English Dashboard" FontSize="24" FontWeight="Bold" Foreground="#2C3E50"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Welcome back, " FontSize="16" Foreground="#6C757D"/>
+                            <TextBlock Text="{Binding UserDisplayName}" FontSize="16" FontWeight="SemiBold" Foreground="#007BFF"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+                
+                <Button Grid.Column="1" Content="🔓 Đăng xuất" 
+                        Style="{StaticResource DangerButtonStyle}"
+                        Command="{Binding LogoutCommand}"/>
+            </Grid>
+        </Border>        
+        <!-- Main Content with Tabs -->
+        <TabControl Grid.Row="2" Margin="16,0,16,16" Background="Transparent" BorderThickness="0">
+            <TabControl.ItemContainerStyle>
+                <Style TargetType="TabItem" BasedOn="{StaticResource ModernTabStyle}"/>
+            </TabControl.ItemContainerStyle>
+              <TabItem Header="📚 Reading Practice" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BooleanToVisibilityInverseConverter}}">
+                <Border Style="{StaticResource ModernCardStyle}" Margin="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Header with title and start button -->
+                        <Grid Grid.Row="0" Margin="0,0,0,24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" Text="📚 Reading Practice History" FontSize="20" FontWeight="Bold" 
+                                       Foreground="#2C3E50" VerticalAlignment="Center"/>
+                            
+                            <Button Grid.Column="1" Content="🚀 Start New Reading" 
+                                    Style="{StaticResource ModernButtonStyle}"
+                                    Command="{Binding NavigateReadingCommand}" 
+                                    Width="200"/>
+                        </Grid>
+                          <!-- Scrollable history -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="400">
+                            <ListView ItemsSource="{Binding ReadingSessions}" 
+                                      Background="Transparent" BorderThickness="0"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="📅 Date" DisplayMemberBinding="{Binding CreatedAt}" Width="130"/>
+                                        <GridViewColumn Header="📖 Title" DisplayMemberBinding="{Binding DisplayTitle}" Width="280"/>
+                                        <GridViewColumn Header="🏷️ Type" DisplayMemberBinding="{Binding SourceType}" Width="80"/>
+                                        <GridViewColumn Header="⭐ Score" DisplayMemberBinding="{Binding Score}" Width="70"/>
+                                        <GridViewColumn Header="🎯 Band" DisplayMemberBinding="{Binding Band}" Width="70"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>            </TabItem>
+              <TabItem Header="✍️ Writing Practice" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BooleanToVisibilityInverseConverter}}">
+                <Border Style="{StaticResource ModernCardStyle}" Margin="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Header with title and start button -->
+                        <Grid Grid.Row="0" Margin="0,0,0,24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" Text="✍️ Writing Practice History" FontSize="20" FontWeight="Bold" 
+                                       Foreground="#2C3E50" VerticalAlignment="Center"/>
+                            
+                            <Button Grid.Column="1" Content="🚀 Start New Writing" 
+                                    Style="{StaticResource SuccessButtonStyle}"
+                                    Command="{Binding NavigateWritingCommand}" 
+                                    Width="200"/>
+                        </Grid>
+                          <!-- Scrollable history -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="400">
+                            <ListView ItemsSource="{Binding WritingSessions}" 
+                                      Background="Transparent" BorderThickness="0"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="📅 Date" DisplayMemberBinding="{Binding CreatedAt, StringFormat='dd/MM/yyyy HH:mm'}" Width="140"/>
+                                        <GridViewColumn Header="📝 Topic" Width="240">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock TextWrapping="Wrap">
+                                                        <TextBlock.Text>
+                                                            <MultiBinding StringFormat="{}{0}{1}">
+                                                                <Binding Path="Topic.Title" FallbackValue="" />
+                                                                <Binding Path="CustomTopic" FallbackValue="" />
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>                                        <GridViewColumn Header="⭐ Score" DisplayMemberBinding="{Binding Score, StringFormat='F1'}" Width="80"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>            </TabItem>
+            
+            <!-- Admin Tab - Only visible for admin users -->
+            <TabItem Header="⚙️ Admin Panel" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Border Style="{StaticResource ModernCardStyle}" Margin="0">
+                    <TabControl Background="Transparent" BorderThickness="0">
+                        <TabItem Header="📖 Manage Reading">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="0,16">
+                                    <TextBlock Text="📖 Create New Reading Exercise" FontSize="18" FontWeight="Bold" 
+                                               Foreground="#2C3E50" Margin="0,0,0,20"/>
+                                    
+                                    <!-- Reading Title -->
+                                    <TextBlock Text="Title:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBox Text="{Binding NewReadingTitle, UpdateSourceTrigger=PropertyChanged}" 
+                                             Margin="0,0,0,16" Padding="12" FontSize="14"/>
+                                    
+                                    <!-- Reading Passage -->
+                                    <TextBlock Text="Reading Passage:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBox Text="{Binding NewReadingPassage, UpdateSourceTrigger=PropertyChanged}" 
+                                             AcceptsReturn="True" TextWrapping="Wrap" MinHeight="150" 
+                                             Margin="0,0,0,16" Padding="12" FontSize="14"/>
+                                    
+                                    <!-- Questions Section -->
+                                    <TextBlock Text="Questions:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <Border BorderThickness="1" BorderBrush="#E0E0E0" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                                        <StackPanel>
+                                            <ItemsControl ItemsSource="{Binding NewReadingQuestions}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderThickness="1" BorderBrush="#F0F0F0" CornerRadius="6" 
+                                                                Padding="12" Margin="0,0,0,12" Background="#FAFAFA">
+                                                            <StackPanel>
+                                                                <TextBlock Text="{Binding QuestionNumber, StringFormat='Question {0}:'}" 
+                                                                           FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                                                <TextBox Text="{Binding QuestionText, UpdateSourceTrigger=PropertyChanged}" 
+                                                                         Margin="0,0,0,8" Padding="8"/>
+                                                                
+                                                                <TextBlock Text="Options:" FontWeight="Medium" Margin="0,0,0,4"/>
+                                                                <ItemsControl ItemsSource="{Binding Options}">
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <StackPanel Orientation="Horizontal" Margin="0,2">                                                                                <TextBlock Text="{Binding OptionLetter, StringFormat='{}{0}:'}" 
+                                                                                           Width="20" FontWeight="Medium"/>
+                                                                                <TextBox Text="{Binding OptionText, UpdateSourceTrigger=PropertyChanged}" 
+                                                                                         Width="300" Margin="5,0"/>
+                                                                                <CheckBox IsChecked="{Binding IsCorrect}" 
+                                                                                          Content="Correct" Margin="10,0"/>
+                                                                            </StackPanel>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                                
+                                                                <TextBlock Text="Explanation:" FontWeight="Medium" Margin="0,8,0,4"/>
+                                                                <TextBox Text="{Binding Explanation, UpdateSourceTrigger=PropertyChanged}" 
+                                                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Padding="8"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            
+                                            <Button Content="➕ Add Question" 
+                                                    Style="{StaticResource ModernButtonStyle}"
+                                                    Command="{Binding AddQuestionCommand}" 
+                                                    Width="150" Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                      <!-- Action Buttons -->
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="💾 Save Reading Exercise" 
+                                                Style="{StaticResource SuccessButtonStyle}"
+                                                Command="{Binding SaveReadingCommand}" 
+                                                Width="200" Margin="0,0,16,0"/>
+                                        <Button Content="🔄 Reset Form" 
+                                                Style="{StaticResource DangerButtonStyle}"
+                                                Command="{Binding ResetReadingFormCommand}" 
+                                                Width="120"/>
+                                    </StackPanel>
+                                    
+                                    <!-- Existing Reading Exercises List -->
+                                    <Border BorderThickness="1" BorderBrush="#E0E0E0" CornerRadius="8" 
+                                            Padding="16" Margin="0,32,0,0" Background="#F8F9FA">
+                                        <StackPanel>
+                                            <TextBlock Text="📚 Existing Reading Exercises" FontSize="16" FontWeight="Bold" 
+                                                       Margin="0,0,0,16"/>                                            <ListView ItemsSource="{Binding ExistingReadingExercises}" 
+                                                      Background="Transparent" BorderThickness="0" MaxHeight="300">
+                                                <ListView.View>
+                                                    <GridView>
+                                                        <GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title}" Width="280"/>
+                                                        <GridViewColumn Header="Created By" DisplayMemberBinding="{Binding CreatedBy}" Width="90"/>
+                                                        <GridViewColumn Header="Created" DisplayMemberBinding="{Binding CreatedAt, StringFormat='dd/MM/yyyy'}" Width="90"/>
+                                                        <GridViewColumn Header="Actions" Width="80">
+                                                            <GridViewColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <Button Content="🗑️" Style="{StaticResource DangerButtonStyle}"
+                                                                            Command="{Binding DataContext.DeleteReadingExerciseCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                                            CommandParameter="{Binding}" Width="35" Height="30" ToolTip="Delete Exercise"/>
+                                                                </DataTemplate>
+                                                            </GridViewColumn.CellTemplate>
+                                                        </GridViewColumn>
+                                                    </GridView>
+                                                </ListView.View>
+                                            </ListView>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        
+                        <TabItem Header="✍️ Manage Writing Topics">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="0,16">
+                                    <TextBlock Text="✍️ Create New Writing Topic" FontSize="18" FontWeight="Bold" 
+                                               Foreground="#2C3E50" Margin="0,0,0,20"/>
+                                    
+                                    <!-- Topic Title -->
+                                    <TextBlock Text="Topic Title:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBox Text="{Binding NewWritingTopicTitle, UpdateSourceTrigger=PropertyChanged}" 
+                                             Margin="0,0,0,16" Padding="12" FontSize="14"/>
+                                    
+                                    <!-- Difficulty Level -->
+                                    <TextBlock Text="Difficulty Level:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <ComboBox SelectedItem="{Binding NewWritingTopicDifficulty}" 
+                                              Margin="0,0,0,16" Padding="12" FontSize="14">
+                                        <ComboBoxItem Content="Beginner" Tag="5.0-5.5"/>
+                                        <ComboBoxItem Content="Intermediate" Tag="6.0-6.5" IsSelected="True"/>
+                                        <ComboBoxItem Content="Advanced" Tag="7.0-7.5"/>
+                                    </ComboBox>
+                                      <!-- Action Buttons -->
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="💾 Save Writing Topic" 
+                                                Style="{StaticResource SuccessButtonStyle}"
+                                                Command="{Binding SaveWritingTopicCommand}" 
+                                                Width="200" Margin="0,0,16,0"/>
+                                        <Button Content="🔄 Reset Form" 
+                                                Style="{StaticResource DangerButtonStyle}"
+                                                Command="{Binding ResetWritingTopicFormCommand}" 
+                                                Width="120"/>
+                                    </StackPanel>
+                                    
+                                    <!-- Existing Topics List -->
+                                    <Border BorderThickness="1" BorderBrush="#E0E0E0" CornerRadius="8" 
+                                            Padding="16" Margin="0,32,0,0" Background="#F8F9FA">
+                                        <StackPanel>
+                                            <TextBlock Text="📝 Existing Writing Topics" FontSize="16" FontWeight="Bold" 
+                                                       Margin="0,0,0,16"/>                                            <ListView ItemsSource="{Binding ExistingWritingTopics}" 
+                                                      Background="Transparent" BorderThickness="0" MaxHeight="300">
+                                                <ListView.View>
+                                                    <GridView>
+                                                        <GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title}" Width="240"/>
+                                                        <GridViewColumn Header="Difficulty" DisplayMemberBinding="{Binding Band}" Width="100"/>
+                                                        <GridViewColumn Header="Created" DisplayMemberBinding="{Binding CreatedAt, StringFormat='dd/MM/yyyy'}" Width="90"/>
+                                                        <GridViewColumn Header="Actions" Width="80">
+                                                            <GridViewColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <Button Content="🗑️" Style="{StaticResource DangerButtonStyle}"
+                                                                            Command="{Binding DataContext.DeleteWritingTopicCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                                            CommandParameter="{Binding}" Width="35" Height="30" ToolTip="Delete Topic"/>
+                                                                </DataTemplate>
+                                                            </GridViewColumn.CellTemplate>
+                                                        </GridViewColumn>
+                                                    </GridView>
+                                                </ListView.View>
+                                            </ListView>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                </Border>
+            </TabItem>
+              <TabItem Header="👤 Account">
+                <Border Style="{StaticResource ModernCardStyle}" Margin="0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel MaxWidth="800" HorizontalAlignment="Center">
+                            <TextBlock Text="Account Information" FontSize="20" FontWeight="Bold" 
+                                       Foreground="black" HorizontalAlignment="Center" Margin="0,0,0,32"/>
+                            
+                            <!-- Personal Account Information -->
+                            <Border Background="#F8F9FA" CornerRadius="12" Padding="24" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="👤 Username:" FontWeight="SemiBold" 
+                                               Margin="0,0,16,20" VerticalAlignment="Center" Foreground="Black"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentUser.Username}" 
+                                               Margin="0,0,0,20" VerticalAlignment="Center" FontSize="14" Foreground="Black"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="📧 Email:" FontWeight="SemiBold" 
+                                               Margin="0,0,16,20" VerticalAlignment="Center" Foreground="Black"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentUser.Email}" 
+                                               Margin="0,0,0,20" VerticalAlignment="Center" FontSize="14" Foreground="Black"/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="👤 Full Name:" FontWeight="SemiBold" 
+                                               Margin="0,0,16,20" VerticalAlignment="Center" Foreground="Black"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CurrentUser.Username}" 
+                                               Margin="0,0,0,20" VerticalAlignment="Center" FontSize="14" Foreground="Black"/>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="📅 Member Since:" FontWeight="SemiBold" 
+                                               Margin="0,0,0,4" Foreground="Black"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding CurrentUser.CreatedAt, StringFormat='{}{0:dd/MM/yyyy}'}" 
+                                               Margin="0,0,0,4" Foreground="Black"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Admin User Management Section (visible only for admin) -->
+                            <Border Background="#FFF9E6" CornerRadius="12" Padding="24" Margin="0,16,0,0"
+                                    Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel>
+                                    <TextBlock Text="👥 User Management" FontSize="18" FontWeight="Bold" 
+                                               Foreground="#E67E22" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                                      <ListView ItemsSource="{Binding AllUsers}" Background="Transparent" BorderThickness="0" MaxHeight="400">
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="ID" DisplayMemberBinding="{Binding UserId}" Width="60"/>
+                                                <GridViewColumn Header="Username" DisplayMemberBinding="{Binding Username}" Width="140"/>
+                                                <GridViewColumn Header="Email" DisplayMemberBinding="{Binding Email}" Width="180"/>
+                                                <GridViewColumn Header="Level" DisplayMemberBinding="{Binding Level}" Width="80"/>
+                                                <GridViewColumn Header="Admin" Width="80">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding IsAdmin}" Foreground="{Binding IsAdmin, Converter={StaticResource BooleanToTooltipConverter}}"
+                                                                       FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn Header="Created" DisplayMemberBinding="{Binding CreatedAt, StringFormat='dd/MM/yyyy'}" Width="90"/>                                                <GridViewColumn Header="Actions" Width="60">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                <Button Content="⚡" ToolTip="Toggle Admin Status"
+                                                                        Style="{StaticResource ModernButtonStyle}"
+                                                                        Command="{Binding DataContext.ToggleUserAdminCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                                        CommandParameter="{Binding}" Width="28" Height="28" Margin="2"/>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Page>

@@ -33,14 +33,11 @@ namespace Business.Services
                 throw new InvalidOperationException($"Configuration file not found: {settingsPath}");
             var jsonSettings = File.ReadAllText(settingsPath);
             using var settingsDoc = JsonDocument.Parse(jsonSettings);
-            _apiKey = settingsDoc.RootElement
-                .GetProperty("Gemini")
-                .GetProperty("ApiKey")
-                .GetString()
-                ?? throw new InvalidOperationException("API key not configured in appsettings.json.");
+            var geminiSection = settingsDoc.RootElement.GetProperty("Gemini");
+            _apiKey = geminiSection.GetProperty("ApiKey").GetString() ?? throw new InvalidOperationException("API key not configured in appsettings.json.");
             _httpClient = new HttpClient();
-            // No default BaseAddress or Authorization header; API key passed in endpoint query string
         }
+
         public async Task<string> GenerateReadingQuestionsAsync(string passageText)
         {
             string prompt = @"
@@ -72,28 +69,29 @@ Passage:
             {
                 contents = new[]
                 {
-            new
-            {
-                parts = new[]
-                {
-                    new { text = prompt }
+                    new
+                    {
+                        parts = new[]
+                        {
+                            new { text = prompt }
+                        }
+                    }
                 }
-            }
-        }
             };
-
             var requestJson = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-            var geminiEndpoint = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={_apiKey}";
-
+            // Sử dụng model gemini-2.0-flash và truyền API Key qua header
+            var geminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
             try
             {
-                var response = await _httpClient.PostAsync(geminiEndpoint, content);
+                var request = new HttpRequestMessage(HttpMethod.Post, geminiEndpoint);
+                request.Content = content;
+                request.Headers.Add("X-goog-api-key", _apiKey);
+                var response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(jsonResponse);
-
                 var candidates = doc.RootElement.GetProperty("candidates");
                 if (candidates.GetArrayLength() > 0)
                 {
@@ -105,11 +103,11 @@ Passage:
                     return text ?? "";
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine("[AI ERROR] " + ex.ToString());
                 return "Generating questions failed. Please try again.";
             }
-            // Ensure all code paths return a value
             return "Generating questions failed. Please try again.";
         }
         public async Task SaveAiQuestionsAsync(string passageText, string aiResponse, int presetId)
@@ -180,27 +178,18 @@ Passage:
                 }
 
                 // Process the correct answers
-                if (isMultipleChoice)
+                var correctAnswers = correctAnswer.Replace(" ", "").Replace(",", "").ToCharArray();
+                if (correctAnswers.Length > 1)
                 {
-                    // Split the answer string to handle formats like "A, C" or "AC"
-                    var correctAnswers = correctAnswer.Replace(" ", "").Replace(",", "").ToCharArray();
-
-                    foreach (var answer in correctAnswers)
-                    {
-                        var option = options.FirstOrDefault(opt => opt.OptionLabel == answer.ToString());
-                        if (option != null)
-                        {
-                            option.IsCorrect = true;
-                        }
-                    }
+                    isMultipleChoice = true;
                 }
-                else
+
+                foreach (var answer in correctAnswers)
                 {
-                    // Single correct answer
-                    var correctOption = options.FirstOrDefault(opt => opt.OptionLabel == correctAnswer);
-                    if (correctOption != null)
+                    var option = options.FirstOrDefault(opt => opt.OptionLabel == answer.ToString());
+                    if (option != null)
                     {
-                        correctOption.IsCorrect = true;
+                        option.IsCorrect = true;
                     }
                 }
 

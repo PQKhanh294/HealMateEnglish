@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using HealMateEnglish.ViewModels;
 
 namespace HealMateEnglish.Views
 {
@@ -20,9 +21,20 @@ namespace HealMateEnglish.Views
     /// </summary>
     public partial class DashboardPage : Page
     {
-        public DashboardPage()
+        private readonly DashboardViewModel _viewModel;        public DashboardPage(int userId)
         {
             InitializeComponent();
+            _viewModel = new DashboardViewModel(userId);
+            DataContext = _viewModel;
+            
+            // Subscribe to Loaded event to refresh data when page is loaded
+            this.Loaded += DashboardPage_Loaded;
+        }
+
+        private void DashboardPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Refresh sessions data when dashboard is loaded/shown
+            _viewModel.RefreshSessions();
         }
     }
 }

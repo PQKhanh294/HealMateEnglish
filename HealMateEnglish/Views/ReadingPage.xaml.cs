@@ -20,25 +20,16 @@ namespace HealMateEnglish.Views
         public ReadingPage()
         {
             InitializeComponent();
-            // Setup database and services
-            var dbContext = new HealmateEnglishContext();
-            var readingRepo = new ReadingRepository(dbContext);
-            var aiService = new ReadingAIService(readingRepo);
-            // Initialize ViewModel with repository
-            var vm = new ReadingViewModel(aiService, readingRepo);
-            // Subscribe to navigation events
-            vm.QuestionsLoaded += OnQuestionsLoaded;
-            vm.NavigateToReadingPageRequested += OnNavigateToReadingPageRequested;
-            _viewModel = vm;
-            DataContext = vm;
-        }
-
-        // Giữ nguyên constructor hiện có
+            // Không khởi tạo ViewModel ở đây nữa để tránh userId hardcode
+        }        // Constructor nhận ViewModel (có userId đúng)
         public ReadingPage(ReadingViewModel viewModel)
         {
             InitializeComponent();
             _viewModel = viewModel;
             DataContext = _viewModel;
+            _viewModel.QuestionsLoaded += OnQuestionsLoaded;
+            _viewModel.NavigateToReadingPageRequested += OnNavigateToReadingPageRequested;
+            _viewModel.NavigateToDashboardRequested += OnNavigateToDashboardRequested;
         }
 
         private void RadioButton_Checked(object sender, RoutedEventArgs e)
@@ -58,13 +49,17 @@ namespace HealMateEnglish.Views
                 _viewModel.IsPresetMode = false;
             }
         }
-
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            // Navigate back to previous page
-            if (NavigationService.CanGoBack)
+            // Quay về Dashboard thay vì GoBack
+            if (NavigationService != null && NavigationService.CanGoBack)
             {
                 NavigationService.GoBack();
+            }
+            else
+            {
+                // Fallback: trigger navigation to dashboard via event
+                OnNavigateToDashboardRequested();
             }
         }
 
@@ -75,13 +70,28 @@ namespace HealMateEnglish.Views
             else
                 Application.Current.MainWindow.Content = new ReadingResultPage(_viewModel);
         }
-
         private void OnNavigateToReadingPageRequested()
         {
-            if (NavigationService != null)
-                NavigationService.Navigate(new ReadingPage());
+            // Thay vì tạo ReadingPage mới, điều hướng về Dashboard
+            OnNavigateToDashboardRequested();
+        }
+        private void OnNavigateToDashboardRequested()
+        {
+            // Quay về Dashboard
+            if (NavigationService != null && NavigationService.CanGoBack)
+            {
+                NavigationService.GoBack();
+            }
             else
-                Application.Current.MainWindow.Content = new ReadingPage();
+            {
+                // Alternative: Navigate directly to dashboard
+                var mainWindow = Application.Current.MainWindow as NavigationWindow;
+                if (mainWindow != null)
+                {
+                    var dashboardPage = new DashboardPage(_viewModel.UserId);
+                    mainWindow.NavigationService.Navigate(dashboardPage);
+                }
+            }
         }
     }
 }

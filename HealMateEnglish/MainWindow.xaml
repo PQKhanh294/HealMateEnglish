@@ -5,5 +5,6 @@
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   mc:Ignorable="d"
                   Title="HealMate English" Height="650" Width="1000"
-                  ShowsNavigationUI="True"
-                  Source="Views/ReadingPage.xaml" />
+                  ShowsNavigationUI="True">
+    <!-- Không đặt Source ở đây, chỉ điều hướng tới Page bằng code sau khi đăng nhập -->
+</NavigationWindow>
